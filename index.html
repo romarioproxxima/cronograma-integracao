@@ -62,7 +62,8 @@
   .card h2{font-size:15px;margin:0 0 14px;letter-spacing:.02em;color:var(--text);display:flex;align-items:center;gap:10px}
   .card h2 .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
   .row{display:grid;grid-template-columns:2fr 1fr;gap:18px}
-  @media (max-width:1100px){.row{grid-template-columns:1fr}}
+  .row.row-eq{grid-template-columns:1fr 1fr}
+  @media (max-width:1100px){.row,.row.row-eq{grid-template-columns:1fr}}
 
   /* Gantt */
   .gantt-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
@@ -71,20 +72,20 @@
   .legend .sw{width:12px;height:12px;border-radius:3px}
   .filter{background:var(--bg-2);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:10px;font-size:13px;font-family:inherit}
   .gantt{width:100%;overflow-x:auto;border-radius:12px;border:1px solid var(--line);background:var(--bg-2)}
-  .gantt-inner{min-width:980px;position:relative}
-  .gantt-head{display:grid;grid-template-columns:320px 1fr;border-bottom:1px solid var(--line);background:#0e1531;position:sticky;top:0;z-index:2}
-  .gantt-head .col-tasks{padding:12px 14px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;border-right:1px solid var(--line)}
-  .timeline{position:relative;height:46px}
-  .month{position:absolute;top:0;height:100%;border-left:1px solid var(--line);font-size:11px;color:var(--muted);padding:6px 8px;white-space:nowrap}
-  .month b{display:block;font-size:12px;color:var(--text);font-weight:600}
-  .row-item{display:grid;grid-template-columns:320px 1fr;border-bottom:1px solid rgba(36,48,100,.5)}
+  .gantt-inner{min-width:1100px;position:relative}
+  .gantt-head{display:grid;grid-template-columns:380px 1fr;border-bottom:1px solid var(--line);background:#0e1531;position:sticky;top:0;z-index:2}
+  .gantt-head .col-tasks{padding:16px 18px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;border-right:1px solid var(--line)}
+  .timeline{position:relative;height:60px}
+  .month{position:absolute;top:0;height:100%;border-left:1px solid var(--line);font-size:12px;color:var(--muted);padding:8px 10px;white-space:nowrap}
+  .month b{display:block;font-size:14px;color:var(--text);font-weight:700;margin-bottom:2px}
+  .row-item{display:grid;grid-template-columns:380px 1fr;border-bottom:1px solid rgba(36,48,100,.5)}
   .row-item:hover{background:rgba(91,140,255,.05)}
-  .task-cell{padding:12px 14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:4px;min-height:54px;justify-content:center}
-  .task-cell .name{font-size:13px;font-weight:600;line-height:1.3}
-  .task-cell .who{font-size:11px;color:var(--muted)}
-  .bar-cell{position:relative;height:54px}
+  .task-cell{padding:16px 18px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:6px;min-height:74px;justify-content:center}
+  .task-cell .name{font-size:14px;font-weight:600;line-height:1.35}
+  .task-cell .who{font-size:12px;color:var(--muted)}
+  .bar-cell{position:relative;height:74px}
   .bar-cell .gridline{position:absolute;top:0;bottom:0;width:1px;background:rgba(36,48,100,.45)}
-  .bar{position:absolute;top:12px;height:30px;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:11px;font-weight:600;color:#0b1020;box-shadow:0 6px 14px rgba(0,0,0,.25);transition:transform .15s ease}
+  .bar{position:absolute;top:18px;height:38px;border-radius:9px;display:flex;align-items:center;padding:0 12px;font-size:12px;font-weight:700;color:#0b1020;box-shadow:0 6px 14px rgba(0,0,0,.25);transition:transform .15s ease}
   .bar:hover{transform:translateY(-1px)}
   .bar .pct{position:absolute;left:0;top:0;bottom:0;border-radius:8px;opacity:.35}
   .bar.status-andamento{background:linear-gradient(135deg,#ffd166,#f7b500);color:#3a2a00}
@@ -136,31 +137,34 @@
 
   <section class="kpis" id="kpis"></section>
 
-  <div class="row" style="margin-bottom:18px">
-    <div class="card">
-      <h2><span class="dot"></span> Gantt — Linha do tempo</h2>
-      <div class="gantt-toolbar">
-        <select class="filter" id="filter-resp"><option value="">Todos os responsáveis</option></select>
-        <select class="filter" id="filter-status">
-          <option value="">Todos os status</option>
-          <option>Em andamento</option>
-          <option>Parado</option>
-          <option>Concluído</option>
-        </select>
-        <div class="legend">
-          <div class="it"><span class="sw" style="background:linear-gradient(135deg,#ffd166,#f7b500)"></span>Em andamento</div>
-          <div class="it"><span class="sw" style="background:linear-gradient(135deg,#8a96bb,#6b7794)"></span>Parado</div>
-          <div class="it"><span class="sw" style="background:linear-gradient(135deg,#52e0a3,#2ecc71)"></span>Concluído</div>
-          <div class="it"><span class="sw" style="background:var(--today)"></span>Hoje</div>
-        </div>
+  <div class="card" style="margin-bottom:18px">
+    <h2><span class="dot"></span> Gantt — Linha do tempo</h2>
+    <div class="gantt-toolbar">
+      <select class="filter" id="filter-resp"><option value="">Todos os responsáveis</option></select>
+      <select class="filter" id="filter-status">
+        <option value="">Todos os status</option>
+        <option>Em andamento</option>
+        <option>Parado</option>
+        <option>Concluído</option>
+      </select>
+      <div class="legend">
+        <div class="it"><span class="sw" style="background:linear-gradient(135deg,#ffd166,#f7b500)"></span>Em andamento</div>
+        <div class="it"><span class="sw" style="background:linear-gradient(135deg,#8a96bb,#6b7794)"></span>Parado</div>
+        <div class="it"><span class="sw" style="background:linear-gradient(135deg,#52e0a3,#2ecc71)"></span>Concluído</div>
+        <div class="it"><span class="sw" style="background:var(--today)"></span>Hoje</div>
       </div>
-      <div class="gantt" id="gantt"></div>
+    </div>
+    <div class="gantt" id="gantt"></div>
+  </div>
+
+  <div class="row row-eq" style="margin-bottom:18px">
+    <div class="card">
+      <h2><span class="dot"></span> Distribuição por Status</h2>
+      <div class="donut-wrap" style="height:320px"><canvas id="chart-status"></canvas></div>
     </div>
     <div class="card">
-      <h2><span class="dot"></span> Status & Responsáveis</h2>
-      <div class="donut-wrap"><canvas id="chart-status"></canvas></div>
-      <div style="height:14px"></div>
-      <div class="donut-wrap"><canvas id="chart-resp"></canvas></div>
+      <h2><span class="dot"></span> Dias por Responsável</h2>
+      <div class="donut-wrap" style="height:320px"><canvas id="chart-resp"></canvas></div>
     </div>
   </div>
 
@@ -326,7 +330,7 @@ function renderGantt(){
       </div>
       <div style="position:relative">
         ${rowsHtml}
-        ${inRange?`<div class="today-line" style="left:calc(320px + (100% - 320px)*${todayPct/100})"><div class="today-label">HOJE ${fmtShort(TODAY)}</div></div>`:''}
+        ${inRange?`<div class="today-line" style="left:calc(380px + (100% - 380px)*${todayPct/100})"><div class="today-label">HOJE ${fmtShort(TODAY)}</div></div>`:''}
       </div>
     </div>`;
 
@@ -403,7 +407,7 @@ function renderCharts(){
         borderColor:'#121a35',borderWidth:3
       }]
     },
-    options:{cutout:'62%',plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:10,font:{size:11}}},title:{display:true,text:'Distribuição por Status',color:'#e8ecf7',font:{size:13,weight:'600'}}}}
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:10,font:{size:12}}}}}
   });
   const respCounts = {};
   DATA.forEach(d=>{respCounts[d.who]=(respCounts[d.who]||0)+d.dur});
@@ -413,9 +417,10 @@ function renderCharts(){
     type:'bar',
     data:{labels,datasets:[{label:'Dias alocados',data:vals,backgroundColor:'rgba(91,140,255,.7)',borderColor:'#7ad0ff',borderWidth:1,borderRadius:6}]},
     options:{
+      responsive:true,maintainAspectRatio:false,
       indexAxis:'y',
-      plugins:{legend:{display:false},title:{display:true,text:'Dias por Responsável',color:'#e8ecf7',font:{size:13,weight:'600'}}},
-      scales:{x:{grid:{color:'rgba(36,48,100,.5)'},ticks:{font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10}}}}
+      plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'rgba(36,48,100,.5)'},ticks:{font:{size:11}}},y:{grid:{display:false},ticks:{font:{size:11}}}}
     }
   });
 }
@@ -425,8 +430,4 @@ renderKPIs();
 fillFilters();
 renderGantt();
 renderTable();
-renderCharts();
-window.addEventListener('resize',renderGantt);
-</script>
-</body>
-</html>
+renderChart
