@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Cronograma · Integração Porta Cliente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0b1020;
+    --bg-2:#0f152b;
+    --panel:#121a35;
+    --panel-2:#172246;
+    --line:#243064;
+    --text:#e8ecf7;
+    --muted:#9aa6c9;
+    --accent:#5b8cff;
+    --accent-2:#7ad0ff;
+    --green:#2ecc71;
+    --yellow:#f7b500;
+    --red:#ff5c7c;
+    --grey:#6b7794;
+    --today:#ff5c7c;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  body{
+    background:
+      radial-gradient(1200px 600px at -10% -10%, rgba(91,140,255,.15), transparent 60%),
+      radial-gradient(900px 500px at 110% 0%, rgba(122,208,255,.10), transparent 60%),
+      var(--bg);
+    min-height:100vh;
+  }
+  .wrap{max-width:1400px;margin:0 auto;padding:28px 24px 60px}
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:14px}
+  .logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#5b8cff,#7ad0ff);display:grid;place-items:center;font-weight:800;color:#0b1020;box-shadow:0 8px 20px rgba(91,140,255,.35)}
+  h1{font-size:22px;margin:0;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:13px;margin-top:2px}
+  .meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .pill{background:var(--panel);border:1px solid var(--line);padding:8px 12px;border-radius:999px;font-size:12px;color:var(--muted)}
+  .pill b{color:var(--text)}
+
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:22px}
+  @media (max-width:1100px){.kpis{grid-template-columns:repeat(3,1fr)}}
+  @media (max-width:640px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line);border-radius:16px;padding:16px;position:relative;overflow:hidden}
+  .kpi .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .kpi .value{font-size:28px;font-weight:800;margin-top:6px;letter-spacing:-.02em}
+  .kpi .hint{font-size:12px;color:var(--muted);margin-top:4px}
+  .kpi .bar{height:6px;background:#1c2754;border-radius:999px;overflow:hidden;margin-top:10px}
+  .kpi .bar > span{display:block;height:100%;background:linear-gradient(90deg,#5b8cff,#7ad0ff)}
+  .kpi.green .value{color:#52e0a3}
+  .kpi.yellow .value{color:#ffd166}
+  .kpi.red .value{color:#ff8aa0}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}
+  .card h2{font-size:15px;margin:0 0 14px;letter-spacing:.02em;color:var(--text);display:flex;align-items:center;gap:10px}
+  .card h2 .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+  .row{display:grid;grid-template-columns:2fr 1fr;gap:18px}
+  @media (max-width:1100px){.row{grid-template-columns:1fr}}
+
+  /* Gantt */
+  .gantt-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-left:auto}
+  .legend .it{display:flex;align-items:center;gap:6px}
+  .legend .sw{width:12px;height:12px;border-radius:3px}
+  .filter{background:var(--bg-2);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:10px;font-size:13px;font-family:inherit}
+  .gantt{width:100%;overflow-x:auto;border-radius:12px;border:1px solid var(--line);background:var(--bg-2)}
+  .gantt-inner{min-width:980px;position:relative}
+  .gantt-head{display:grid;grid-template-columns:320px 1fr;border-bottom:1px solid var(--line);background:#0e1531;position:sticky;top:0;z-index:2}
+  .gantt-head .col-tasks{padding:12px 14px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;border-right:1px solid var(--line)}
+  .timeline{position:relative;height:46px}
+  .month{position:absolute;top:0;height:100%;border-left:1px solid var(--line);font-size:11px;color:var(--muted);padding:6px 8px;white-space:nowrap}
+  .month b{display:block;font-size:12px;color:var(--text);font-weight:600}
+  .row-item{display:grid;grid-template-columns:320px 1fr;border-bottom:1px solid rgba(36,48,100,.5)}
+  .row-item:hover{background:rgba(91,140,255,.05)}
+  .task-cell{padding:12px 14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:4px;min-height:54px;justify-content:center}
+  .task-cell .name{font-size:13px;font-weight:600;line-height:1.3}
+  .task-cell .who{font-size:11px;color:var(--muted)}
+  .bar-cell{position:relative;height:54px}
+  .bar-cell .gridline{position:absolute;top:0;bottom:0;width:1px;background:rgba(36,48,100,.45)}
+  .bar{position:absolute;top:12px;height:30px;border-radius:8px;display:flex;align-items:center;padding:0 10px;font-size:11px;font-weight:600;color:#0b1020;box-shadow:0 6px 14px rgba(0,0,0,.25);transition:transform .15s ease}
+  .bar:hover{transform:translateY(-1px)}
+  .bar .pct{position:absolute;left:0;top:0;bottom:0;border-radius:8px;opacity:.35}
+  .bar.status-andamento{background:linear-gradient(135deg,#ffd166,#f7b500);color:#3a2a00}
+  .bar.status-parado{background:linear-gradient(135deg,#8a96bb,#6b7794);color:#0b1020}
+  .bar.status-concluido{background:linear-gradient(135deg,#52e0a3,#2ecc71);color:#053b21}
+  .bar.status-atrasado{background:linear-gradient(135deg,#ff8aa0,#ff5c7c);color:#3a000a}
+  .today-line{position:absolute;top:0;bottom:0;width:2px;background:var(--today);z-index:3;box-shadow:0 0 12px rgba(255,92,124,.7)}
+  .today-label{position:absolute;background:var(--today);color:#fff;font-size:10px;padding:2px 6px;border-radius:6px;transform:translate(-50%,-100%);top:-2px;font-weight:700;white-space:nowrap}
+
+  /* Table */
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;background:#0e1531;position:sticky;top:0}
+  tr:hover td{background:rgba(91,140,255,.04)}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600}
+  .chip .sw{width:8px;height:8px;border-radius:50%}
+  .chip.andamento{background:rgba(247,181,0,.15);color:#ffd166}
+  .chip.parado{background:rgba(107,119,148,.2);color:#aab4cf}
+  .chip.concluido{background:rgba(46,204,113,.15);color:#52e0a3}
+  .chip.atrasado{background:rgba(255,92,124,.15);color:#ff8aa0}
+
+  .tooltip{position:fixed;background:#0b1020;border:1px solid var(--line);padding:10px 12px;border-radius:10px;font-size:12px;pointer-events:none;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:300px;display:none}
+  .tooltip h4{margin:0 0 6px;font-size:13px;font-weight:700}
+  .tooltip .ttrow{display:flex;justify-content:space-between;gap:14px;color:var(--muted)}
+  .tooltip .ttrow b{color:var(--text);font-weight:600}
+
+  footer{margin-top:24px;text-align:center;color:var(--muted);font-size:12px}
+  footer a{color:var(--accent-2);text-decoration:none}
+  .donut-wrap{position:relative;height:240px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <div class="logo">PX</div>
+      <div>
+        <h1>Cronograma · Integração Porta Cliente</h1>
+        <div class="sub">Acompanhamento das etapas de integração — Proxxima Telecom</div>
+      </div>
+    </div>
+    <div class="meta">
+      <div class="pill">Hoje: <b id="today-pill"></b></div>
+      <div class="pill">Início: <b id="start-pill"></b></div>
+      <div class="pill">Fim previsto: <b id="end-pill"></b></div>
+    </div>
+  </header>
+
+  <section class="kpis" id="kpis"></section>
+
+  <div class="row" style="margin-bottom:18px">
+    <div class="card">
+      <h2><span class="dot"></span> Gantt — Linha do tempo</h2>
+      <div class="gantt-toolbar">
+        <select class="filter" id="filter-resp"><option value="">Todos os responsáveis</option></select>
+        <select class="filter" id="filter-status">
+          <option value="">Todos os status</option>
+          <option>Em andamento</option>
+          <option>Parado</option>
+          <option>Concluído</option>
+        </select>
+        <div class="legend">
+          <div class="it"><span class="sw" style="background:linear-gradient(135deg,#ffd166,#f7b500)"></span>Em andamento</div>
+          <div class="it"><span class="sw" style="background:linear-gradient(135deg,#8a96bb,#6b7794)"></span>Parado</div>
+          <div class="it"><span class="sw" style="background:linear-gradient(135deg,#52e0a3,#2ecc71)"></span>Concluído</div>
+          <div class="it"><span class="sw" style="background:var(--today)"></span>Hoje</div>
+        </div>
+      </div>
+      <div class="gantt" id="gantt"></div>
+    </div>
+    <div class="card">
+      <h2><span class="dot"></span> Status & Responsáveis</h2>
+      <div class="donut-wrap"><canvas id="chart-status"></canvas></div>
+      <div style="height:14px"></div>
+      <div class="donut-wrap"><canvas id="chart-resp"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span> Detalhamento das etapas</h2>
+    <div style="overflow-x:auto">
+      <table id="table">
+        <thead><tr>
+          <th>#</th><th>Etapa</th><th>Responsável</th><th>Início</th><th>Fim</th><th>Duração</th><th>Status</th><th>Progresso</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    Dados extraídos do arquivo <b>Cronograma integração Porta_Cliente.xlsx</b>. Gerado automaticamente · Proxxima Telecom
+  </footer>
+</div>
+
+<div class="tooltip" id="tt"></div>
+
+<script>
+/* ------- Dados ------- */
+const DATA = [
+  {n:"Criação do ambiente de teste Aniel",                                          who:"Aniel",                 ini:"2026-02-02", fim:"2026-05-19", st:"Em andamento"},
+  {n:"Realização dos testes",                                                       who:"Romário",               ini:"2026-05-20", fim:"2026-05-22", st:"Parado"},
+  {n:"Validação com a diretoria",                                                   who:"Romário / Charbenson",  ini:"2026-05-25", fim:"2026-05-29", st:"Parado"},
+  {n:"Solicitar vínculo dos splitters com as OLT no Voalle",                        who:"Romário",               ini:"2026-06-01", fim:"2026-06-12", st:"Parado"},
+  {n:"Aplicar as configurações na base de produção Aniel / Voalle",                 who:"Aniel",                 ini:"2026-06-02", fim:"2026-06-15", st:"Parado"},
+  {n:"Aplicar as configurações na base de produção Geogrid / Voalle",               who:"Geogrid",               ini:"2026-06-03", fim:"2026-06-16", st:"Parado"},
+  {n:"Confirmar vínculo e testes finais",                                           who:"Romário",               ini:"2026-06-17", fim:"2026-06-23", st:"Parado"},
+  {n:"Implementação",                                                               who:"Romário / Operações",   ini:"2026-06-24", fim:"2026-07-15", st:"Parado"},
+];
+
+/* ------- Helpers ------- */
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+const fmt = d => d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+const fmtShort = d => d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+const parse = s => { const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); };
+const days = (a,b) => Math.round((b-a)/86400000);
+const stKey = s => s.trim().toLowerCase()
+  .replace('em andamento','andamento')
+  .replace('concluído','concluido')
+  .replace('parado','parado');
+
+DATA.forEach((d,i)=>{
+  d.id = i+1;
+  d.iniD = parse(d.ini);
+  d.fimD = parse(d.fim);
+  d.dur = days(d.iniD,d.fimD)+1;
+  // progresso
+  if(d.fimD < TODAY){ d.progress = d.st.includes('Concluído')?100:100; }
+  else if(d.iniD > TODAY){ d.progress = 0; }
+  else { d.progress = Math.max(0,Math.min(100, Math.round(days(d.iniD,TODAY)/d.dur*100))); }
+  if(d.st.trim()==='Parado' && d.fimD < TODAY) d.st='Atrasado';
+});
+
+const PROJ_START = new Date(Math.min(...DATA.map(d=>d.iniD.getTime())));
+const PROJ_END   = new Date(Math.max(...DATA.map(d=>d.fimD.getTime())));
+const PROJ_DUR   = days(PROJ_START,PROJ_END);
+
+document.getElementById('today-pill').textContent = fmt(TODAY);
+document.getElementById('start-pill').textContent = fmt(PROJ_START);
+document.getElementById('end-pill').textContent   = fmt(PROJ_END);
+
+/* ------- KPIs ------- */
+function renderKPIs(){
+  const total = DATA.length;
+  const andamento = DATA.filter(d=>d.st==='Em andamento').length;
+  const parado    = DATA.filter(d=>d.st==='Parado').length;
+  const concl     = DATA.filter(d=>d.st==='Concluído'||d.st==='Concluido').length;
+  const atras     = DATA.filter(d=>d.st==='Atrasado').length;
+  const totalDur  = PROJ_DUR+1;
+  const elapsed   = Math.max(0,Math.min(totalDur, days(PROJ_START,TODAY)+1));
+  const pct       = Math.round(elapsed/totalDur*100);
+  const kpis = [
+    {label:'Etapas',       value:total,                  hint:`${totalDur} dias de projeto`,           cls:''},
+    {label:'Em andamento', value:andamento,              hint:'execução em curso',                     cls:'yellow'},
+    {label:'Paradas',      value:parado,                 hint:'aguardando início',                     cls:''},
+    {label:'Concluídas',   value:concl,                  hint:'entregues',                             cls:'green'},
+    {label:'Atrasadas',    value:atras,                  hint:'fora do prazo',                         cls:'red'},
+    {label:'% do prazo',   value:pct+'%',                hint:`${elapsed}/${totalDur} dias`,           cls:'',  bar:pct},
+  ];
+  const el = document.getElementById('kpis');
+  el.innerHTML = kpis.map(k=>`
+    <div class="kpi ${k.cls}">
+      <div class="label">${k.label}</div>
+      <div class="value">${k.value}</div>
+      <div class="hint">${k.hint}</div>
+      ${k.bar!==undefined?`<div class="bar"><span style="width:${k.bar}%"></span></div>`:''}
+    </div>`).join('');
+}
+
+/* ------- Gantt ------- */
+function buildMonths(){
+  const months=[];
+  let cur = new Date(PROJ_START.getFullYear(), PROJ_START.getMonth(),1);
+  const end = new Date(PROJ_END.getFullYear(),  PROJ_END.getMonth()+1,1);
+  while(cur < end){
+    months.push(new Date(cur));
+    cur.setMonth(cur.getMonth()+1);
+  }
+  return months;
+}
+function pctX(date){
+  // posicionamento dentro do range visível (PROJ_START..PROJ_END)
+  return (days(PROJ_START,date)/PROJ_DUR)*100;
+}
+
+function renderGantt(){
+  const root = document.getElementById('gantt');
+  const filterResp = document.getElementById('filter-resp').value;
+  const filterSt   = document.getElementById('filter-status').value;
+  const items = DATA.filter(d => (!filterResp||d.who===filterResp) && (!filterSt||d.st===filterSt||(filterSt==='Concluído'&&d.st==='Concluido')) );
+
+  const months = buildMonths();
+  const monthsHtml = months.map(m=>{
+    const next = new Date(m.getFullYear(),m.getMonth()+1,1);
+    const left = pctX(m<PROJ_START?PROJ_START:m);
+    const right= pctX(next>PROJ_END?PROJ_END:next);
+    const w = right-left;
+    const name = m.toLocaleDateString('pt-BR',{month:'short'}).replace('.','').toUpperCase();
+    return `<div class="month" style="left:${left}%;width:${w}%"><b>${name}</b>${m.getFullYear()}</div>`;
+  }).join('');
+
+  // gridlines a cada mês
+  const gridHtml = months.map(m=>{
+    const left = pctX(m<PROJ_START?PROJ_START:m);
+    return `<div class="gridline" style="left:${left}%"></div>`;
+  }).join('');
+
+  const todayPct = pctX(TODAY);
+  const inRange = TODAY>=PROJ_START && TODAY<=PROJ_END;
+
+  const rowsHtml = items.map(d=>{
+    const left = pctX(d.iniD);
+    const right= pctX(d.fimD);
+    const w = Math.max(1.2,right-left);
+    const cls = d.st==='Em andamento'?'status-andamento':d.st==='Concluído'||d.st==='Concluido'?'status-concluido':d.st==='Atrasado'?'status-atrasado':'status-parado';
+    return `
+      <div class="row-item" data-id="${d.id}">
+        <div class="task-cell">
+          <div class="name">${d.id}. ${d.n}</div>
+          <div class="who">${d.who} · ${d.dur} dias</div>
+        </div>
+        <div class="bar-cell">
+          ${gridHtml}
+          <div class="bar ${cls}" style="left:${left}%;width:${w}%"
+               data-name="${d.n}" data-who="${d.who}" data-ini="${fmt(d.iniD)}" data-fim="${fmt(d.fimD)}" data-st="${d.st}" data-dur="${d.dur}" data-prog="${d.progress}">
+            <span class="pct" style="width:${d.progress}%;background:rgba(0,0,0,.35)"></span>
+            <span style="position:relative">${d.progress}%</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  root.innerHTML = `
+    <div class="gantt-inner">
+      <div class="gantt-head">
+        <div class="col-tasks">Etapa</div>
+        <div class="timeline" style="position:relative">${monthsHtml}</div>
+      </div>
+      <div style="position:relative">
+        ${rowsHtml}
+        ${inRange?`<div class="today-line" style="left:calc(320px + (100% - 320px)*${todayPct/100})"><div class="today-label">HOJE ${fmtShort(TODAY)}</div></div>`:''}
+      </div>
+    </div>`;
+
+  // tooltip
+  const tt = document.getElementById('tt');
+  root.querySelectorAll('.bar').forEach(b=>{
+    b.addEventListener('mouseenter',e=>{
+      tt.innerHTML = `
+        <h4>${b.dataset.name}</h4>
+        <div class="ttrow"><span>Responsável</span><b>${b.dataset.who}</b></div>
+        <div class="ttrow"><span>Início</span><b>${b.dataset.ini}</b></div>
+        <div class="ttrow"><span>Fim</span><b>${b.dataset.fim}</b></div>
+        <div class="ttrow"><span>Duração</span><b>${b.dataset.dur} dias</b></div>
+        <div class="ttrow"><span>Status</span><b>${b.dataset.st}</b></div>
+        <div class="ttrow"><span>Progresso</span><b>${b.dataset.prog}%</b></div>`;
+      tt.style.display='block';
+    });
+    b.addEventListener('mousemove',e=>{
+      const x=e.clientX+14, y=e.clientY+14;
+      tt.style.left=Math.min(window.innerWidth-tt.offsetWidth-10,x)+'px';
+      tt.style.top=Math.min(window.innerHeight-tt.offsetHeight-10,y)+'px';
+    });
+    b.addEventListener('mouseleave',()=>{tt.style.display='none'});
+  });
+}
+
+/* ------- Filtros ------- */
+function fillFilters(){
+  const sel = document.getElementById('filter-resp');
+  const uniq = [...new Set(DATA.map(d=>d.who))];
+  uniq.forEach(w=>{const o=document.createElement('option');o.value=w;o.textContent=w;sel.appendChild(o);});
+  sel.addEventListener('change',renderGantt);
+  document.getElementById('filter-status').addEventListener('change',renderGantt);
+}
+
+/* ------- Tabela ------- */
+function renderTable(){
+  const tbody = document.querySelector('#table tbody');
+  tbody.innerHTML = DATA.map(d=>{
+    const chip = d.st==='Em andamento'?'andamento':d.st==='Concluído'||d.st==='Concluido'?'concluido':d.st==='Atrasado'?'atrasado':'parado';
+    return `<tr>
+      <td>${d.id}</td>
+      <td>${d.n}</td>
+      <td>${d.who}</td>
+      <td>${fmt(d.iniD)}</td>
+      <td>${fmt(d.fimD)}</td>
+      <td>${d.dur} dias</td>
+      <td><span class="chip ${chip}"><span class="sw" style="background:currentColor"></span>${d.st}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1;height:6px;background:#1c2754;border-radius:99px;overflow:hidden">
+            <div style="height:100%;width:${d.progress}%;background:linear-gradient(90deg,#5b8cff,#7ad0ff)"></div>
+          </div>
+          <span style="font-size:11px;color:var(--muted);min-width:34px;text-align:right">${d.progress}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* ------- Charts ------- */
+function renderCharts(){
+  Chart.defaults.color = '#9aa6c9';
+  Chart.defaults.font.family = "'Inter',sans-serif";
+  const statusCounts = {};
+  DATA.forEach(d=>{statusCounts[d.st]=(statusCounts[d.st]||0)+1});
+  new Chart(document.getElementById('chart-status'),{
+    type:'doughnut',
+    data:{
+      labels:Object.keys(statusCounts),
+      datasets:[{
+        data:Object.values(statusCounts),
+        backgroundColor:Object.keys(statusCounts).map(s=>s==='Em andamento'?'#f7b500':s==='Atrasado'?'#ff5c7c':s==='Concluído'||s==='Concluido'?'#2ecc71':'#6b7794'),
+        borderColor:'#121a35',borderWidth:3
+      }]
+    },
+    options:{cutout:'62%',plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:10,font:{size:11}}},title:{display:true,text:'Distribuição por Status',color:'#e8ecf7',font:{size:13,weight:'600'}}}}
+  });
+  const respCounts = {};
+  DATA.forEach(d=>{respCounts[d.who]=(respCounts[d.who]||0)+d.dur});
+  const labels = Object.keys(respCounts);
+  const vals = Object.values(respCounts);
+  new Chart(document.getElementById('chart-resp'),{
+    type:'bar',
+    data:{labels,datasets:[{label:'Dias alocados',data:vals,backgroundColor:'rgba(91,140,255,.7)',borderColor:'#7ad0ff',borderWidth:1,borderRadius:6}]},
+    options:{
+      indexAxis:'y',
+      plugins:{legend:{display:false},title:{display:true,text:'Dias por Responsável',color:'#e8ecf7',font:{size:13,weight:'600'}}},
+      scales:{x:{grid:{color:'rgba(36,48,100,.5)'},ticks:{font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10}}}}
+    }
+  });
+}
+
+/* ------- Boot ------- */
+renderKPIs();
+fillFilters();
+renderGantt();
+renderTable();
+renderCharts();
+window.addEventListener('resize',renderGantt);
+</script>
+</body>
+</html>
